@@ -1,5 +1,14 @@
-import "@/styles/globals.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import Bootstrap from "../components/Bootstrap";
 
-export default function App({ Component, pageProps }) {
-  return <Component {...pageProps} />;
+function MyApp({ Component, pageProps }) {
+  return (
+    <>
+      <Component {...pageProps} />
+      <Bootstrap />
+    </>
+  );
 }
+
+export default MyApp;
