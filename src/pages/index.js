@@ -5,17 +5,17 @@ import Link from "next/link";
 function Home() {
   const [characters, setCharacters] = useState([]);
   const [info, setInfo] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    loadCharacters();
-  }, []);
+    loadCharacters(currentPage);
+  }, [currentPage]);
 
   const loadCharacters = async (page = 1) => {
     try {
       const response = await axios.get(
         `https://rickandmortyapi.com/api/character?page=${page}`
       );
-      console.log("API response:", response.data); // Debug log
       setCharacters(response.data.results);
       setInfo(response.data.info);
     } catch (error) {
@@ -28,10 +28,72 @@ function Home() {
     return parts[parts.length - 1];
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const renderPagination = () => {
+    const totalPages = info.pages;
+    const pageNumbers = [];
+    let startPage = Math.max(currentPage - 2, 1);
+    let endPage = Math.min(currentPage + 2, totalPages);
+
+    if (startPage === 1) {
+      endPage = Math.min(5, totalPages);
+    }
+    if (endPage === totalPages) {
+      startPage = Math.max(totalPages - 4, 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <nav aria-label="Page navigation example">
+        <ul className="pagination justify-content-center">
+          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+            <button
+              className="page-link"
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              &laquo;
+            </button>
+          </li>
+          {pageNumbers.map((page) => (
+            <li
+              className={`page-item ${currentPage === page ? "active" : ""}`}
+              key={page}
+            >
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(page)}
+              >
+                {page}
+              </button>
+            </li>
+          ))}
+          <li
+            className={`page-item ${
+              currentPage === totalPages ? "disabled" : ""
+            }`}
+          >
+            <button
+              className="page-link"
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              &raquo;
+            </button>
+          </li>
+        </ul>
+      </nav>
+    );
+  };
+
   return (
     <div>
       <nav className="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-        <a className="navbar-brand" href="">
+        <a className="navbar-brand" href="#">
           Rick and Morty
         </a>
         <button
@@ -119,7 +181,7 @@ function Home() {
                       className="list-group-item d-flex justify-content-between align-items-center"
                       data-bs-toggle="collapse"
                       data-bs-target={`#collapse${index}`}
-                      aria-expanded="true"
+                      aria-expanded="false"
                       aria-controls={`collapse${index}`}
                     >
                       Episodes
@@ -152,44 +214,7 @@ function Home() {
       </div>
 
       <footer className="pt-4 my-md-5 pt-md-5 border-top">
-        <nav aria-label="Page navigation example">
-          <ul className="pagination justify-content-center">
-            <li className={`page-item ${info.prev ? "" : "disabled"}`}>
-              <button
-                className="page-link"
-                onClick={() => loadCharacters(getIdFromUrl(info.prev))}
-              >
-                &laquo;
-              </button>
-            </li>
-            {[...Array(info.pages).keys()].map((page) => (
-              <li
-                className={`page-item ${
-                  page + 1 ===
-                  (info.next ? getIdFromUrl(info.next) - 1 : info.pages)
-                    ? "active"
-                    : ""
-                }`}
-                key={page}
-              >
-                <button
-                  className="page-link"
-                  onClick={() => loadCharacters(page + 1)}
-                >
-                  {page + 1}
-                </button>
-              </li>
-            ))}
-            <li className={`page-item ${info.next ? "" : "disabled"}`}>
-              <button
-                className="page-link"
-                onClick={() => loadCharacters(getIdFromUrl(info.next))}
-              >
-                &raquo;
-              </button>
-            </li>
-          </ul>
-        </nav>
+        {renderPagination()}
       </footer>
     </div>
   );
